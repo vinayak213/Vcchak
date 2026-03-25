@@ -1,0 +1,87 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!78 &1
+TagManager:
+  serializedVersion: 2
+  tags:
+  - PlayerBullet
+  - EnemyBullet
+  - Pickup
+  - Hazard
+  - Checkpoint
+  - Boss
+  - DestructibleObject
+  - Coin
+  layers:
+  - Default
+  - TransparentFX
+  - Ignore Raycast
+  -
+  - Water
+  - UI
+  -
+  -
+  - Player
+  - Enemy
+  - PlayerBullet
+  - EnemyBullet
+  - Platform
+  - Pickup
+  - Hazard
+  - Background
+  - Foreground
+  -
+  -
+  -
+  -
+  -
+  -
+  -
+  -
+  -
+  -
+  -
+  -
+  -
+  -
+  -
+  m_SortingLayers:
+  - name: Background
+    uniqueID: 1
+    locked: 0
+  - name: Parallax_Far
+    uniqueID: 2
+    locked: 0
+  - name: Parallax_Mid
+    uniqueID: 3
+    locked: 0
+  - name: Parallax_Near
+    uniqueID: 4
+    locked: 0
+  - name: Default
+    uniqueID: 0
+    locked: 0
+  - name: Platform
+    uniqueID: 5
+    locked: 0
+  - name: Pickup
+    uniqueID: 6
+    locked: 0
+  - name: Enemy
+    uniqueID: 7
+    locked: 0
+  - name: Player
+    uniqueID: 8
+    locked: 0
+  - name: Bullet
+    uniqueID: 9
+    locked: 0
+  - name: Effect
+    uniqueID: 10
+    locked: 0
+  - name: Foreground
+    uniqueID: 11
+    locked: 0
+  - name: UI
+    uniqueID: 12
+    locked: 0
