@@ -172,6 +172,10 @@ namespace RunAndGun
         // -- Physics helpers --
         private float _defaultGravityScale;
 
+        // -- Contact-based ground detection --
+        private ContactPoint2D[] _contacts = new ContactPoint2D[16];
+        private float _debugTimer;
+
         // ================================================================== //
         //  Unity lifecycle
         // ================================================================== //
@@ -202,6 +206,20 @@ namespace RunAndGun
             {
                 groundLayers = 1 << 0;
                 Debug.LogWarning("[PlayerController] groundLayers was Nothing — defaulted to Default layer.");
+            }
+
+            Debug.Log($"[PlayerController] Start: groundLayers={groundLayers.value}, pos={transform.position}, " +
+                      $"collider.size={_collider.size}, rb.bodyType={_rb.bodyType}, rb.simulated={_rb.simulated}");
+
+            // Log all ground colliders in the scene
+            var allCols = FindObjectsByType<BoxCollider2D>(FindObjectsSortMode.None);
+            foreach (var c in allCols)
+            {
+                if (c.gameObject.name.StartsWith("Ground_") || c.gameObject.name == "Platform")
+                {
+                    Debug.Log($"[PlayerController] Found ground: {c.gameObject.name} pos={c.transform.position} " +
+                              $"size={c.size} isTrigger={c.isTrigger} layer={c.gameObject.layer}");
+                }
             }
         }
 
@@ -264,15 +282,50 @@ namespace RunAndGun
 
         private void CheckGround()
         {
-            float halfHeight = _collider.size.y * 0.5f;
-            Vector2 origin = (Vector2)transform.position
-                             + _collider.offset
-                             + new Vector2(0f, -halfHeight)
-                             + groundCheckOffset;
-            Vector2 size = new(_collider.size.x * groundCheckWidth, groundCheckDepth);
-
             bool wasGrounded = IsGrounded;
-            IsGrounded = Physics2D.OverlapBox(origin, size, 0f, groundLayers) != null;
+
+            // Primary: contact-based detection (most reliable)
+            IsGrounded = false;
+            int contactCount = _rb.GetContacts(_contacts);
+            for (int i = 0; i < contactCount; i++)
+            {
+                // Contact normal pointing up means we're standing on something
+                if (_contacts[i].normal.y > 0.5f)
+                {
+                    IsGrounded = true;
+                    break;
+                }
+            }
+
+            // Fallback: OverlapBox check
+            if (!IsGrounded)
+            {
+                float halfHeight = _collider.size.y * 0.5f;
+                Vector2 origin = (Vector2)transform.position
+                                 + _collider.offset
+                                 + new Vector2(0f, -halfHeight)
+                                 + groundCheckOffset;
+                Vector2 size = new(_collider.size.x * groundCheckWidth, groundCheckDepth);
+                IsGrounded = Physics2D.OverlapBox(origin, size, 0f, groundLayers) != null;
+            }
+
+            // Debug: periodic logging
+            _debugTimer += Time.fixedDeltaTime;
+            if (_debugTimer >= 1f)
+            {
+                _debugTimer = 0f;
+                Debug.Log($"[PlayerController] pos.y={transform.position.y:F1} vel.y={_rb.linearVelocity.y:F1} " +
+                          $"grounded={IsGrounded} contacts={contactCount} gravity={_rb.gravityScale}");
+            }
+
+            // Safety: if the player falls below -20, teleport back to start
+            if (transform.position.y < -20f)
+            {
+                Debug.LogWarning("[PlayerController] Player fell below kill plane — teleporting to (-5, 2)");
+                _rb.linearVelocity = Vector2.zero;
+                _rb.position = new Vector2(-5f, 2f);
+                _rb.gravityScale = _defaultGravityScale;
+            }
 
             if (IsGrounded)
             {
@@ -282,10 +335,6 @@ namespace RunAndGun
             }
             else if (wasGrounded)
             {
-                // Just left the ground — if not from a jump, start coyote timer
-                // (coyote timer was already set above when grounded, so it will
-                // simply tick down from its current value).
-                // Consume one jump so coyote counts as the "first" jump.
                 if (_jumpsRemaining > 0 && _rb.linearVelocity.y <= 0.01f)
                 {
                     _jumpsRemaining--;

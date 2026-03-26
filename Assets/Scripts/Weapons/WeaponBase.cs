@@ -14,7 +14,7 @@ namespace RunAndGun
 
         public WeaponData Data => weaponData;
         public int CurrentAmmo => currentAmmo;
-        public bool HasAmmo => weaponData.HasInfiniteAmmo || currentAmmo > 0;
+        public bool HasAmmo => weaponData != null && (weaponData.HasInfiniteAmmo || currentAmmo > 0);
 
         public event System.Action<int> OnAmmoChanged;
         public event System.Action OnWeaponEmpty;
@@ -40,6 +40,7 @@ namespace RunAndGun
 
         public void ResetAmmo()
         {
+            if (weaponData == null) return;
             currentAmmo = weaponData.AmmoCapacity;
             OnAmmoChanged?.Invoke(currentAmmo);
         }
