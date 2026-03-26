@@ -778,7 +778,13 @@ namespace RunAndGun.Editor
             rb.collisionDetectionMode = CollisionDetectionMode2D.Continuous;
 
             player.AddComponent<CapsuleCollider2D>();
-            player.AddComponent<PlayerController>();
+
+            var pc = player.AddComponent<PlayerController>();
+            // Set groundLayers to Default layer (where our ground tiles live)
+            SerializedObject pcSer = new SerializedObject(pc);
+            pcSer.FindProperty("groundLayers").intValue = 1 << LayerMask.NameToLayer("Default");
+            pcSer.ApplyModifiedPropertiesWithoutUndo();
+
             player.AddComponent<PlayerHealth>();
 
             // Fire point child
