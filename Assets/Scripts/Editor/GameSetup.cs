@@ -100,47 +100,36 @@ namespace RunAndGun.Editor
         {
             var sprites = new Dictionary<string, Sprite>();
 
-            // Player — blue rectangle
             sprites["Player"] = MakeSprite("Player", 32, 48,
                 new Color(0.2f, 0.5f, 1f));
 
-            // Bullet — small yellow
             sprites["Bullet"] = MakeSprite("Bullet", 12, 6,
                 new Color(1f, 0.9f, 0.2f));
 
-            // EnemyBullet — red small
             sprites["EnemyBullet"] = MakeSprite("EnemyBullet", 10, 10,
                 new Color(1f, 0.2f, 0.2f));
 
-            // Ground tile
             sprites["Ground"] = MakeSprite("Ground", 64, 64,
                 new Color(0.35f, 0.25f, 0.15f));
 
-            // Platform tile
             sprites["Platform"] = MakeSprite("Platform", 128, 16,
                 new Color(0.4f, 0.55f, 0.3f));
 
-            // Enemy — red square
             sprites["GroundEnemy"] = MakeSprite("GroundEnemy", 32, 32,
                 new Color(0.9f, 0.15f, 0.15f));
 
-            // Flying enemy — magenta
             sprites["FlyingEnemy"] = MakeSprite("FlyingEnemy", 28, 28,
                 new Color(0.85f, 0.1f, 0.7f));
 
-            // Coin
             sprites["Coin"] = MakeSprite("Coin", 16, 16,
                 new Color(1f, 0.85f, 0f));
 
-            // Health pickup — green cross
             sprites["HealthPickup"] = MakeSprite("HealthPickup", 20, 20,
                 new Color(0.1f, 0.9f, 0.2f));
 
-            // Background
             sprites["Background"] = MakeSprite("Background", 512, 512,
                 new Color(0.12f, 0.18f, 0.28f));
 
-            // Explosion
             sprites["Explosion"] = MakeSprite("Explosion", 48, 48,
                 new Color(1f, 0.6f, 0.1f));
 
@@ -155,16 +144,15 @@ namespace RunAndGun.Editor
             Color[] pixels = new Color[w * h];
             for (int i = 0; i < pixels.Length; i++) pixels[i] = color;
 
-            // Simple 1px darker border
             for (int x = 0; x < w; x++)
             {
-                pixels[x] = color * 0.5f;                // bottom row
-                pixels[x + (h - 1) * w] = color * 0.5f;  // top row
+                pixels[x] = color * 0.5f;
+                pixels[x + (h - 1) * w] = color * 0.5f;
             }
             for (int y = 0; y < h; y++)
             {
-                pixels[y * w] = color * 0.5f;             // left col
-                pixels[y * w + w - 1] = color * 0.5f;     // right col
+                pixels[y * w] = color * 0.5f;
+                pixels[y * w + w - 1] = color * 0.5f;
             }
 
             tex.SetPixels(pixels);
@@ -175,7 +163,6 @@ namespace RunAndGun.Editor
 
             AssetDatabase.ImportAsset(texPath, ImportAssetOptions.ForceUpdate);
 
-            // Set texture importer to Sprite
             TextureImporter importer = AssetImporter.GetAtPath(texPath) as TextureImporter;
             if (importer != null)
             {
@@ -287,31 +274,24 @@ namespace RunAndGun.Editor
         {
             var prefabs = new Dictionary<string, GameObject>();
 
-            // --- Bullet ---
             prefabs["Bullet"] = CreateBulletPrefab(sprites["Bullet"], "Bullet",
                 "PlayerBullet");
 
-            // --- Enemy Bullet ---
             prefabs["EnemyBullet"] = CreateBulletPrefab(sprites["EnemyBullet"],
                 "EnemyBullet", "EnemyBullet");
 
-            // Wire bullet prefab into weapon data
             SetBulletOnWeaponData(weaponData["RapidFire"], prefabs["Bullet"]);
             SetBulletOnWeaponData(weaponData["SpreadShot"], prefabs["Bullet"]);
             SetBulletOnWeaponData(weaponData["Explosive"], prefabs["Bullet"]);
 
-            // --- Coin ---
             prefabs["Coin"] = CreateCoinPrefab(sprites["Coin"]);
 
-            // --- Health Pickup ---
             prefabs["HealthPickup"] = CreateHealthPickupPrefab(sprites["HealthPickup"]);
 
-            // --- Ground Enemy ---
             prefabs["GroundEnemy"] = CreateGroundEnemyPrefab(
                 sprites["GroundEnemy"], enemyData["GroundSoldier"],
                 prefabs["EnemyBullet"]);
 
-            // --- Flying Enemy ---
             prefabs["FlyingEnemy"] = CreateFlyingEnemyPrefab(
                 sprites["FlyingEnemy"], enemyData["FlyingDrone"]);
 
@@ -472,7 +452,6 @@ namespace RunAndGun.Editor
         //  4.  SCENES
         // ================================================================== //
 
-        // -------------------- MAIN MENU -------------------- //
         private static string BuildMainMenuScene(
             Dictionary<string, Sprite> sprites,
             Dictionary<string, GameObject> prefabs)
@@ -489,26 +468,20 @@ namespace RunAndGun.Editor
                 cam.transform.position = new Vector3(0, 0, -10);
             }
 
-            // -- Managers --
             CreateManagerObjects(prefabs);
 
-            // -- Canvas --
             GameObject canvas = CreateCanvas("MainMenuCanvas");
 
-            // Title text
             GameObject titleGO = CreateUIText(canvas.transform, "TitleText",
                 "RUN & GUN", 48, Color.white,
                 new Vector2(0, 120), new Vector2(600, 80));
 
-            // Play button
             GameObject playBtn = CreateUIButton(canvas.transform, "PlayButton",
                 "PLAY", new Vector2(0, 20), new Vector2(200, 50));
 
-            // Quit button
             GameObject quitBtn = CreateUIButton(canvas.transform, "QuitButton",
                 "QUIT", new Vector2(0, -50), new Vector2(200, 50));
 
-            // Wire MainMenuUI
             var menuUI = canvas.AddComponent<MainMenuUI>();
             SerializedObject ser = new SerializedObject(menuUI);
             ser.FindProperty("playButton").objectReferenceValue =
@@ -524,7 +497,6 @@ namespace RunAndGun.Editor
             return path;
         }
 
-        // -------------------- LEVEL SCENE -------------------- //
         private static string BuildLevelScene(
             Dictionary<string, Sprite> sprites,
             Dictionary<string, GameObject> prefabs,
@@ -534,7 +506,6 @@ namespace RunAndGun.Editor
             Scene scene = EditorSceneManager.NewScene(
                 NewSceneSetup.DefaultGameObjects, NewSceneMode.Single);
 
-            // --- Camera ---
             Camera cam = Camera.main;
             if (cam != null)
             {
@@ -547,13 +518,10 @@ namespace RunAndGun.Editor
                 cam.gameObject.AddComponent<ScreenShake>();
             }
 
-            // --- Managers ---
             CreateManagerObjects(prefabs);
 
-            // --- Player ---
             GameObject player = CreatePlayer(sprites, weaponData);
 
-            // Wire camera target
             if (cam != null)
             {
                 SerializedObject camSer = new SerializedObject(
@@ -562,23 +530,19 @@ namespace RunAndGun.Editor
                 camSer.ApplyModifiedPropertiesWithoutUndo();
             }
 
-            // --- Ground ---
             CreateGround(sprites["Ground"]);
 
-            // --- Platforms ---
             CreatePlatform(sprites["Platform"], new Vector3(-3, -1, 0));
             CreatePlatform(sprites["Platform"], new Vector3(5, 1, 0));
             CreatePlatform(sprites["Platform"], new Vector3(12, 2.5f, 0));
             CreatePlatform(sprites["Platform"], new Vector3(20, 0.5f, 0));
 
-            // --- Coins ---
             PlaceCoin(prefabs, new Vector3(3, 0, 0));
             PlaceCoin(prefabs, new Vector3(6, 2.5f, 0));
             PlaceCoin(prefabs, new Vector3(12, 4, 0));
             PlaceCoin(prefabs, new Vector3(15, 0, 0));
             PlaceCoin(prefabs, new Vector3(18, 0, 0));
 
-            // --- Enemies ---
             PlaceEnemy(prefabs["GroundEnemy"], new Vector3(10, -1.5f, 0));
             PlaceEnemy(prefabs["GroundEnemy"], new Vector3(22, -1.5f, 0));
             PlaceEnemy(prefabs["FlyingEnemy"], new Vector3(16, 4, 0));
@@ -705,7 +669,6 @@ namespace RunAndGun.Editor
         private static void CreateManagerObjects(
             Dictionary<string, GameObject> prefabs)
         {
-            // GameManager
             GameObject gm = new GameObject("GameManager");
             var gmComp = gm.AddComponent<GameManager>();
             SerializedObject gmSer = new SerializedObject(gmComp);
@@ -713,7 +676,6 @@ namespace RunAndGun.Editor
             gmSer.FindProperty("levelScenes").GetArrayElementAtIndex(0).stringValue = "Level_Jungle";
             gmSer.ApplyModifiedPropertiesWithoutUndo();
 
-            // AudioManager
             GameObject am = new GameObject("AudioManager");
             am.AddComponent<AudioManager>();
             var srcA = am.AddComponent<AudioSource>();
@@ -730,15 +692,12 @@ namespace RunAndGun.Editor
             }
             amSer.ApplyModifiedPropertiesWithoutUndo();
 
-            // ScoreManager
             GameObject sm = new GameObject("ScoreManager");
             sm.AddComponent<ScoreManager>();
 
-            // InputManager
             GameObject im = new GameObject("InputManager");
             im.AddComponent<InputManager>();
 
-            // ObjectPool
             GameObject op = new GameObject("ObjectPool");
             op.AddComponent<ObjectPool>();
         }
@@ -761,15 +720,19 @@ namespace RunAndGun.Editor
             rb.collisionDetectionMode = CollisionDetectionMode2D.Continuous;
 
             player.AddComponent<CapsuleCollider2D>();
-            player.AddComponent<PlayerController>();
+
+            var pc = player.AddComponent<PlayerController>();
+            // Set groundLayers to Default layer (where our ground tiles live)
+            SerializedObject pcSer = new SerializedObject(pc);
+            pcSer.FindProperty("groundLayers").intValue = 1 << LayerMask.NameToLayer("Default");
+            pcSer.ApplyModifiedPropertiesWithoutUndo();
+
             player.AddComponent<PlayerHealth>();
 
-            // Fire point child
             GameObject firePoint = new GameObject("FirePoint");
             firePoint.transform.SetParent(player.transform);
             firePoint.transform.localPosition = new Vector3(1.2f, 0.3f, 0);
 
-            // Weapon child — RapidFire (default)
             GameObject wpnGO = new GameObject("RapidFireWeapon");
             wpnGO.transform.SetParent(player.transform);
             wpnGO.transform.localPosition = Vector3.zero;
@@ -783,7 +746,6 @@ namespace RunAndGun.Editor
                 firePoint.transform;
             wpnSer.ApplyModifiedPropertiesWithoutUndo();
 
-            // PlayerCombat
             var combat = player.AddComponent<PlayerCombat>();
             SerializedObject combatSer = new SerializedObject(combat);
             var slotsArr = combatSer.FindProperty("weaponSlots");
@@ -793,7 +755,6 @@ namespace RunAndGun.Editor
                 firePoint.transform;
             combatSer.ApplyModifiedPropertiesWithoutUndo();
 
-            // Animator controller (optional — works without Animator)
             player.AddComponent<PlayerAnimatorController>();
 
             player.transform.position = new Vector3(-5, 0, 0);
@@ -917,7 +878,6 @@ namespace RunAndGun.Editor
             colors.pressedColor = new Color(0.15f, 0.15f, 0.15f);
             btn.colors = colors;
 
-            // Label child
             GameObject textGO = new GameObject("Label");
             textGO.transform.SetParent(go.transform, false);
 
