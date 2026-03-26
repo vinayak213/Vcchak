@@ -144,6 +144,17 @@ namespace RunAndGun.Editor
             sprites["Explosion"] = MakeSprite("Explosion", 48, 48,
                 new Color(1f, 0.6f, 0.1f));
 
+            // Force refresh so all textures are fully imported
+            AssetDatabase.Refresh(ImportAssetOptions.ForceSynchronousImport);
+
+            // Now load all sprites after everything is imported
+            foreach (string key in new List<string>(sprites.Keys))
+            {
+                string texPath = $"{SpritesPath}/{key}.png";
+                Sprite spr = AssetDatabase.LoadAssetAtPath<Sprite>(texPath);
+                if (spr != null) sprites[key] = spr;
+            }
+
             return sprites;
         }
 
@@ -155,16 +166,15 @@ namespace RunAndGun.Editor
             Color[] pixels = new Color[w * h];
             for (int i = 0; i < pixels.Length; i++) pixels[i] = color;
 
-            // Simple 1px darker border
             for (int x = 0; x < w; x++)
             {
-                pixels[x] = color * 0.5f;                // bottom row
-                pixels[x + (h - 1) * w] = color * 0.5f;  // top row
+                pixels[x] = color * 0.5f;
+                pixels[x + (h - 1) * w] = color * 0.5f;
             }
             for (int y = 0; y < h; y++)
             {
-                pixels[y * w] = color * 0.5f;             // left col
-                pixels[y * w + w - 1] = color * 0.5f;     // right col
+                pixels[y * w] = color * 0.5f;
+                pixels[y * w + w - 1] = color * 0.5f;
             }
 
             tex.SetPixels(pixels);
@@ -175,7 +185,6 @@ namespace RunAndGun.Editor
 
             AssetDatabase.ImportAsset(texPath, ImportAssetOptions.ForceUpdate);
 
-            // Set texture importer to Sprite
             TextureImporter importer = AssetImporter.GetAtPath(texPath) as TextureImporter;
             if (importer != null)
             {
@@ -186,6 +195,7 @@ namespace RunAndGun.Editor
                 importer.SaveAndReimport();
             }
 
+            // Return a placeholder - will be re-loaded after all sprites are created
             return AssetDatabase.LoadAssetAtPath<Sprite>(texPath);
         }
 
