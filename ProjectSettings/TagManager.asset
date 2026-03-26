@@ -16,11 +16,11 @@ TagManager:
   - Default
   - TransparentFX
   - Ignore Raycast
-  -
+  - ""
   - Water
   - UI
-  -
-  -
+  - ""
+  - ""
   - Player
   - Enemy
   - PlayerBullet
@@ -30,21 +30,21 @@ TagManager:
   - Hazard
   - Background
   - Foreground
-  -
-  -
-  -
-  -
-  -
-  -
-  -
-  -
-  -
-  -
-  -
-  -
-  -
-  -
-  -
+  - ""
+  - ""
+  - ""
+  - ""
+  - ""
+  - ""
+  - ""
+  - ""
+  - ""
+  - ""
+  - ""
+  - ""
+  - ""
+  - ""
+  - ""
   m_SortingLayers:
   - name: Background
     uniqueID: 1
