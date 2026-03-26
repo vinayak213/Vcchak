@@ -193,6 +193,9 @@ namespace RunAndGun
 
             // Prevent unwanted rotation in 2D.
             _rb.freezeRotation = true;
+
+            // Ensure Default-Default layer collision is enabled in Physics2D
+            Physics2D.IgnoreLayerCollision(0, 0, false);
         }
 
         private void Start()
@@ -239,6 +242,7 @@ namespace RunAndGun
         private void FixedUpdate()
         {
             CheckGround();
+            SnapToGround();
             HandleHorizontalMovement();
             HandleJump();
             HandleCrouch();
@@ -339,6 +343,46 @@ namespace RunAndGun
                 {
                     _jumpsRemaining--;
                 }
+            }
+        }
+
+        // ================================================================== //
+        //  Ground snapping — workaround for Physics2D not generating contacts
+        // ================================================================== //
+
+        private void SnapToGround()
+        {
+            // If OverlapBox/contacts say we're grounded but we're still falling,
+            // the physics engine isn't resolving the collision. Fix it manually.
+            if (!IsGrounded || _rb.linearVelocity.y > 0.01f) return;
+
+            // Cast downward from the collider bottom to find the exact ground surface
+            float halfHeight = _collider.size.y * 0.5f;
+            Vector2 castOrigin = (Vector2)transform.position + _collider.offset;
+            float castDistance = halfHeight + 0.5f;
+
+            RaycastHit2D hit = Physics2D.BoxCast(
+                castOrigin,
+                new Vector2(_collider.size.x * 0.8f, 0.05f),
+                0f,
+                Vector2.down,
+                castDistance,
+                groundLayers
+            );
+
+            if (hit.collider != null)
+            {
+                // Snap player so their collider bottom sits exactly on the ground surface
+                float targetY = hit.point.y + halfHeight - _collider.offset.y;
+                Vector2 pos = _rb.position;
+                pos.y = targetY;
+                _rb.position = pos;
+                _rb.linearVelocity = new Vector2(_rb.linearVelocity.x, 0f);
+            }
+            else if (_rb.linearVelocity.y < -0.1f)
+            {
+                // OverlapBox says grounded but BoxCast found nothing — just stop falling
+                _rb.linearVelocity = new Vector2(_rb.linearVelocity.x, 0f);
             }
         }
 
