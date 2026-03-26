@@ -118,6 +118,23 @@ namespace RunAndGun.Editor
                 fixed_count++;
             }
 
+            // ---- Verify ground colliders are NOT triggers ----
+            BoxCollider2D[] boxes = Object.FindObjectsByType<BoxCollider2D>(FindObjectsSortMode.None);
+            int triggerFixes = 0;
+            foreach (BoxCollider2D box in boxes)
+            {
+                string goName = box.gameObject.name;
+                if ((goName.StartsWith("Ground_") || goName == "Platform") && box.isTrigger)
+                {
+                    box.isTrigger = false;
+                    EditorUtility.SetDirty(box);
+                    triggerFixes++;
+                    Debug.Log($"[FixScene] Fixed {goName}: isTrigger was true, set to false");
+                }
+            }
+            if (triggerFixes > 0)
+                Debug.LogWarning($"[FixScene] Fixed {triggerFixes} ground/platform colliders that had isTrigger=true");
+
             // ---- Fix Player ----
             GameObject player = GameObject.Find("Player");
             if (player != null)
@@ -127,6 +144,7 @@ namespace RunAndGun.Editor
                 {
                     rb.gravityScale = 3f;
                     rb.freezeRotation = true;
+                    rb.collisionDetectionMode = CollisionDetectionMode2D.Continuous;
                     EditorUtility.SetDirty(rb);
                 }
 

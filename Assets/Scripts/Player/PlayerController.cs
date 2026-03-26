@@ -195,6 +195,14 @@ namespace RunAndGun
         {
             _input = InputManager.Instance;
             _jumpsRemaining = enableDoubleJump ? 2 : 1;
+
+            // Safety: if groundLayers was never assigned in the Inspector,
+            // default to the "Default" layer so the player doesn't fall forever.
+            if (groundLayers.value == 0)
+            {
+                groundLayers = 1 << 0;
+                Debug.LogWarning("[PlayerController] groundLayers was Nothing — defaulted to Default layer.");
+            }
         }
 
         /// <summary>
