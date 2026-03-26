@@ -109,7 +109,7 @@ namespace RunAndGun
             ScreenShake shake = Camera.main.GetComponent<ScreenShake>();
             if (shake != null)
             {
-                shake.Shake(screenShakeIntensity, screenShakeDuration);
+                shake.ShakeCamera(screenShakeIntensity, screenShakeDuration);
             }
         }
     }
