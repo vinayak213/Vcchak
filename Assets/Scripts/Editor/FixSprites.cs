@@ -36,6 +36,7 @@ namespace RunAndGun.Editor
                 EditorUtility.SetDirty(imp);
                 imp.SaveAndReimport();
 
+                // Verify
                 Sprite spr = AssetDatabase.LoadAssetAtPath<Sprite>(path);
                 if (spr != null)
                     Debug.Log($"[ReimportSprites] SUCCESS: {n} -> sprite loaded, tex={spr.texture.name}");
@@ -54,6 +55,7 @@ namespace RunAndGun.Editor
         {
             int fixed_count = 0;
 
+            // ---- Fix Camera ----
             Camera cam = Camera.main;
             if (cam != null)
             {
@@ -66,10 +68,12 @@ namespace RunAndGun.Editor
                 EditorUtility.SetDirty(cam.gameObject);
             }
 
+            // ---- Delete Directional Light ----
             GameObject dirLight = GameObject.Find("Directional Light");
             if (dirLight != null)
                 Undo.DestroyObjectImmediate(dirLight);
 
+            // ---- Load sprites ----
             string[] spriteNames = {
                 "Player", "Ground", "Platform", "Coin", "GroundEnemy",
                 "FlyingEnemy", "HealthPickup", "Background"
@@ -91,6 +95,7 @@ namespace RunAndGun.Editor
                 }
             }
 
+            // ---- Fix all SpriteRenderers ----
             SpriteRenderer[] renderers = Object.FindObjectsByType<SpriteRenderer>(FindObjectsSortMode.None);
             foreach (SpriteRenderer sr in renderers)
             {
@@ -113,6 +118,24 @@ namespace RunAndGun.Editor
                 fixed_count++;
             }
 
+            // ---- Verify ground colliders are NOT triggers ----
+            BoxCollider2D[] boxes = Object.FindObjectsByType<BoxCollider2D>(FindObjectsSortMode.None);
+            int triggerFixes = 0;
+            foreach (BoxCollider2D box in boxes)
+            {
+                string goName = box.gameObject.name;
+                if ((goName.StartsWith("Ground_") || goName == "Platform") && box.isTrigger)
+                {
+                    box.isTrigger = false;
+                    EditorUtility.SetDirty(box);
+                    triggerFixes++;
+                    Debug.Log($"[FixScene] Fixed {goName}: isTrigger was true, set to false");
+                }
+            }
+            if (triggerFixes > 0)
+                Debug.LogWarning($"[FixScene] Fixed {triggerFixes} ground/platform colliders that had isTrigger=true");
+
+            // ---- Fix Player ----
             GameObject player = GameObject.Find("Player");
             if (player != null)
             {
@@ -121,6 +144,7 @@ namespace RunAndGun.Editor
                 {
                     rb.gravityScale = 3f;
                     rb.freezeRotation = true;
+                    rb.collisionDetectionMode = CollisionDetectionMode2D.Continuous;
                     EditorUtility.SetDirty(rb);
                 }
 
@@ -132,6 +156,7 @@ namespace RunAndGun.Editor
                     so.ApplyModifiedProperties();
                 }
 
+                // Fix CapsuleCollider2D size to match sprite (32x48 at 16 PPU = 2x3 units)
                 var col = player.GetComponent<CapsuleCollider2D>();
                 if (col != null)
                 {
