@@ -293,7 +293,6 @@ namespace RunAndGun
             int contactCount = _rb.GetContacts(_contacts);
             for (int i = 0; i < contactCount; i++)
             {
-                // Contact normal pointing up means we're standing on something
                 if (_contacts[i].normal.y > 0.5f)
                 {
                     IsGrounded = true;
@@ -301,7 +300,7 @@ namespace RunAndGun
                 }
             }
 
-            // Fallback: OverlapBox check
+            // Fallback: OverlapBox check (exclude player's own collider!)
             if (!IsGrounded)
             {
                 float halfHeight = _collider.size.y * 0.5f;
@@ -310,7 +309,17 @@ namespace RunAndGun
                                  + new Vector2(0f, -halfHeight)
                                  + groundCheckOffset;
                 Vector2 size = new(_collider.size.x * groundCheckWidth, groundCheckDepth);
-                IsGrounded = Physics2D.OverlapBox(origin, size, 0f, groundLayers) != null;
+
+                // Use OverlapBoxAll and filter out our own collider
+                Collider2D[] hits = Physics2D.OverlapBoxAll(origin, size, 0f, groundLayers);
+                foreach (var hit in hits)
+                {
+                    if (hit != _collider && hit.attachedRigidbody != _rb)
+                    {
+                        IsGrounded = true;
+                        break;
+                    }
+                }
             }
 
             // Debug: periodic logging
@@ -350,38 +359,34 @@ namespace RunAndGun
         //  Ground snapping — workaround for Physics2D not generating contacts
         // ================================================================== //
 
+        // Reusable array for Collider2D.Cast results
+        private RaycastHit2D[] _snapHits = new RaycastHit2D[4];
+
         private void SnapToGround()
         {
-            // If OverlapBox/contacts say we're grounded but we're still falling,
+            // If ground check says grounded but we're still falling,
             // the physics engine isn't resolving the collision. Fix it manually.
             if (!IsGrounded || _rb.linearVelocity.y > 0.01f) return;
 
-            // Cast downward from the collider bottom to find the exact ground surface
-            float halfHeight = _collider.size.y * 0.5f;
-            Vector2 castOrigin = (Vector2)transform.position + _collider.offset;
-            float castDistance = halfHeight + 0.5f;
+            // Use Collider2D.Cast which automatically excludes our own collider
+            ContactFilter2D filter = new ContactFilter2D();
+            filter.SetLayerMask(groundLayers);
+            filter.useLayerMask = true;
 
-            RaycastHit2D hit = Physics2D.BoxCast(
-                castOrigin,
-                new Vector2(_collider.size.x * 0.8f, 0.05f),
-                0f,
-                Vector2.down,
-                castDistance,
-                groundLayers
-            );
+            int hitCount = _collider.Cast(Vector2.down, filter, _snapHits, 0.5f);
 
-            if (hit.collider != null)
+            if (hitCount > 0)
             {
-                // Snap player so their collider bottom sits exactly on the ground surface
-                float targetY = hit.point.y + halfHeight - _collider.offset.y;
+                RaycastHit2D hit = _snapHits[0];
+                // Snap: move player down by (distance - small skin) so collider rests on surface
                 Vector2 pos = _rb.position;
-                pos.y = targetY;
+                pos.y -= (hit.distance - 0.01f);
                 _rb.position = pos;
                 _rb.linearVelocity = new Vector2(_rb.linearVelocity.x, 0f);
             }
             else if (_rb.linearVelocity.y < -0.1f)
             {
-                // OverlapBox says grounded but BoxCast found nothing — just stop falling
+                // Ground check says grounded but cast found nothing — just stop falling
                 _rb.linearVelocity = new Vector2(_rb.linearVelocity.x, 0f);
             }
         }
@@ -519,7 +524,13 @@ namespace RunAndGun
                              + new Vector2(0f, currentHalfHeight + extraNeeded * 0.5f);
             Vector2 size = new(_collider.size.x * 0.9f, extraNeeded);
 
-            return Physics2D.OverlapBox(origin, size, 0f, groundLayers) != null;
+            Collider2D[] hits = Physics2D.OverlapBoxAll(origin, size, 0f, groundLayers);
+            foreach (var hit in hits)
+            {
+                if (hit != _collider && hit.attachedRigidbody != _rb)
+                    return true;
+            }
+            return false;
         }
 
         // ================================================================== //
