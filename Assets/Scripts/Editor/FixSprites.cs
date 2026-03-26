@@ -36,13 +36,24 @@ namespace RunAndGun.Editor
                 if (spriteName == null) continue;
 
                 string path = $"Assets/Sprites/{spriteName}.png";
-                Sprite spr = AssetDatabase.LoadAssetAtPath<Sprite>(path);
-                if (spr != null && sr.sprite != spr)
+                // Load all sub-assets and find the Sprite one
+                Object[] assets = AssetDatabase.LoadAllAssetsAtPath(path);
+                Sprite spr = null;
+                foreach (Object a in assets)
+                {
+                    if (a is Sprite s)
+                    {
+                        spr = s;
+                        break;
+                    }
+                }
+                if (spr != null)
                 {
                     Undo.RecordObject(sr, "Fix Sprite");
                     sr.sprite = spr;
                     EditorUtility.SetDirty(sr);
                     fixed_count++;
+                    Debug.Log($"[FixSprites] {goName} -> {spr.name} ({spr.texture.name})");
                 }
             }
 
