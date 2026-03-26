@@ -149,34 +149,4 @@ namespace RunAndGun
         }
     }
 
-    public class ScreenShake : MonoBehaviour
-    {
-        private float shakeTimer;
-        private float shakeIntensity;
-        private Vector3 originalPosition;
-
-        public void Shake(float intensity, float duration)
-        {
-            shakeIntensity = intensity;
-            shakeTimer = duration;
-            originalPosition = transform.localPosition;
-        }
-
-        private void Update()
-        {
-            if (shakeTimer <= 0f) return;
-
-            shakeTimer -= Time.deltaTime;
-
-            if (shakeTimer > 0f)
-            {
-                float currentIntensity = shakeIntensity * (shakeTimer / (shakeTimer + Time.deltaTime));
-                transform.localPosition = originalPosition + (Vector3)Random.insideUnitCircle * currentIntensity;
-            }
-            else
-            {
-                transform.localPosition = originalPosition;
-            }
-        }
-    }
 }
