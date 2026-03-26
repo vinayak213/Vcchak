@@ -118,22 +118,30 @@ namespace RunAndGun.Editor
                 fixed_count++;
             }
 
-            // ---- Verify ground colliders are NOT triggers ----
+            // ---- Fix ground colliders: not triggers + Layer Overrides ----
             BoxCollider2D[] boxes = Object.FindObjectsByType<BoxCollider2D>(FindObjectsSortMode.None);
             int triggerFixes = 0;
             foreach (BoxCollider2D box in boxes)
             {
                 string goName = box.gameObject.name;
-                if ((goName.StartsWith("Ground_") || goName == "Platform") && box.isTrigger)
+                if (goName.StartsWith("Ground_") || goName == "Platform")
                 {
-                    box.isTrigger = false;
+                    if (box.isTrigger)
+                    {
+                        box.isTrigger = false;
+                        triggerFixes++;
+                    }
+                    // Fix Unity 6 Layer Overrides to ensure collisions work
+                    box.includeLayers = ~0;
+                    box.excludeLayers = 0;
+                    box.contactCaptureLayers = ~0;
+                    box.callbackLayers = ~0;
+                    box.forceReceiveLayers = ~0;
+                    box.forceSendLayers = ~0;
                     EditorUtility.SetDirty(box);
-                    triggerFixes++;
-                    Debug.Log($"[FixScene] Fixed {goName}: isTrigger was true, set to false");
                 }
             }
-            if (triggerFixes > 0)
-                Debug.LogWarning($"[FixScene] Fixed {triggerFixes} ground/platform colliders that had isTrigger=true");
+            Debug.Log($"[FixScene] Configured {boxes.Length} BoxCollider2D Layer Overrides (triggerFixes={triggerFixes})");
 
             // ---- Fix Player ----
             GameObject player = GameObject.Find("Player");
@@ -145,6 +153,9 @@ namespace RunAndGun.Editor
                     rb.gravityScale = 3f;
                     rb.freezeRotation = true;
                     rb.collisionDetectionMode = CollisionDetectionMode2D.Continuous;
+                    // Fix Unity 6 Layer Overrides
+                    rb.includeLayers = ~0;
+                    rb.excludeLayers = 0;
                     EditorUtility.SetDirty(rb);
                 }
 
@@ -162,6 +173,13 @@ namespace RunAndGun.Editor
                 {
                     col.size = new Vector2(1.8f, 2.8f);
                     col.offset = new Vector2(0f, 0f);
+                    // Fix Unity 6 Layer Overrides
+                    col.includeLayers = ~0;
+                    col.excludeLayers = 0;
+                    col.contactCaptureLayers = ~0;
+                    col.callbackLayers = ~0;
+                    col.forceReceiveLayers = ~0;
+                    col.forceSendLayers = ~0;
                     EditorUtility.SetDirty(col);
                 }
 

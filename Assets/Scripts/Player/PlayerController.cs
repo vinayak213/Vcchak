@@ -194,8 +194,33 @@ namespace RunAndGun
             // Prevent unwanted rotation in 2D.
             _rb.freezeRotation = true;
 
-            // Ensure Default-Default layer collision is enabled in Physics2D
+            // Ensure Default-Default layer collision is enabled
             Physics2D.IgnoreLayerCollision(0, 0, false);
+
+            // Fix Unity 6 Layer Overrides — ensure nothing blocks collisions
+            _rb.includeLayers = ~0;    // Include all layers
+            _rb.excludeLayers = 0;     // Exclude nothing
+            _collider.includeLayers = ~0;
+            _collider.excludeLayers = 0;
+            _collider.contactCaptureLayers = ~0;
+            _collider.callbackLayers = ~0;
+            _collider.forceReceiveLayers = ~0;
+            _collider.forceSendLayers = ~0;
+
+            // Also fix ALL ground colliders in the scene
+            var allCols = FindObjectsByType<BoxCollider2D>(FindObjectsSortMode.None);
+            foreach (var c in allCols)
+            {
+                if (c.gameObject.name.StartsWith("Ground_") || c.gameObject.name == "Platform")
+                {
+                    c.includeLayers = ~0;
+                    c.excludeLayers = 0;
+                    c.contactCaptureLayers = ~0;
+                    c.callbackLayers = ~0;
+                    c.forceReceiveLayers = ~0;
+                    c.forceSendLayers = ~0;
+                }
+            }
         }
 
         private void Start()
