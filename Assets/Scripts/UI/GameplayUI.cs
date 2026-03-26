@@ -20,23 +20,23 @@ namespace RunAndGun
 
         [Header("Weapon Info")]
         [SerializeField] private Image weaponIcon;
-        [SerializeField] private TMPro.TextMeshProUGUI ammoText;
+        [SerializeField] private Text ammoText;
 
         [Header("Score")]
-        [SerializeField] private TMPro.TextMeshProUGUI scoreText;
-        [SerializeField] private TMPro.TextMeshProUGUI comboText;
+        [SerializeField] private Text scoreText;
+        [SerializeField] private Text comboText;
 
         [Header("Lives")]
-        [SerializeField] private TMPro.TextMeshProUGUI livesText;
+        [SerializeField] private Text livesText;
         [SerializeField] private Image[] lifeIcons;
 
         [Header("Coins")]
-        [SerializeField] private TMPro.TextMeshProUGUI coinText;
+        [SerializeField] private Text coinText;
 
         [Header("Boss Health Bar")]
         [SerializeField] private GameObject bossHealthBarRoot;
         [SerializeField] private Image bossHealthBarFill;
-        [SerializeField] private TMPro.TextMeshProUGUI bossNameText;
+        [SerializeField] private Text bossNameText;
         [SerializeField] private float bossBarSmoothSpeed = 4f;
 
         // ------------------------------------------------------------------ //

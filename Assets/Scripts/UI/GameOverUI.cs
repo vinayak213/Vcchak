@@ -17,9 +17,9 @@ namespace RunAndGun
         [SerializeField] private GameObject gameOverPanel;
 
         [Header("Score Display")]
-        [SerializeField] private TMPro.TextMeshProUGUI scoreLabel;
-        [SerializeField] private TMPro.TextMeshProUGUI highScoreLabel;
-        [SerializeField] private TMPro.TextMeshProUGUI coinsLabel;
+        [SerializeField] private Text scoreLabel;
+        [SerializeField] private Text highScoreLabel;
+        [SerializeField] private Text coinsLabel;
 
         [Header("High Score Indicator")]
         [SerializeField] private GameObject newHighScoreIndicator;

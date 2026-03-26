@@ -30,7 +30,7 @@ namespace RunAndGun
         [SerializeField] private Button settingsBackButton;
 
         [Header("Control Hint")]
-        [SerializeField] private TMPro.TextMeshProUGUI controlHintText;
+        [SerializeField] private Text controlHintText;
         [SerializeField] private string desktopHint = "ESC - Pause  |  WASD - Move  |  Space - Jump  |  LClick - Shoot  |  Q - Switch Weapon";
         [SerializeField] private string mobileHint = "Use the on-screen controls to play.";
 

@@ -23,8 +23,8 @@ namespace RunAndGun
 
         [Header("Preview")]
         [SerializeField] private Image previewImage;
-        [SerializeField] private TMPro.TextMeshProUGUI previewLevelName;
-        [SerializeField] private TMPro.TextMeshProUGUI previewHighScore;
+        [SerializeField] private Text previewLevelName;
+        [SerializeField] private Text previewHighScore;
 
         [Header("Audio")]
         [SerializeField] private AudioClip buttonClickSfx;
@@ -206,7 +206,7 @@ namespace RunAndGun
     public class LevelButtonUI : MonoBehaviour
     {
         [SerializeField] private Button button;
-        [SerializeField] private TMPro.TextMeshProUGUI labelText;
+        [SerializeField] private Text labelText;
         [SerializeField] private Image lockIcon;
         [SerializeField] private Image[] starImages;
         [SerializeField] private CanvasGroup canvasGroup;

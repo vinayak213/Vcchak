@@ -219,7 +219,7 @@ namespace RunAndGun
     /// </summary>
     public class ScorePopup : MonoBehaviour
     {
-        [SerializeField] private TMPro.TextMeshPro textMesh;
+        [SerializeField] private TextMesh textMesh;
         [SerializeField] private float riseDuration = 0.8f;
         [SerializeField] private float riseDistance = 1.2f;
         [SerializeField] private AnimationCurve fadeCurve = AnimationCurve.EaseInOut(0f, 1f, 1f, 0f);
@@ -231,10 +231,10 @@ namespace RunAndGun
         public void Initialize(int points, int combo)
         {
             if (textMesh == null)
-                textMesh = GetComponent<TMPro.TextMeshPro>();
+                textMesh = GetComponent<TextMesh>();
 
             if (textMesh == null)
-                textMesh = GetComponentInChildren<TMPro.TextMeshPro>();
+                textMesh = GetComponentInChildren<TextMesh>();
 
             if (textMesh != null)
             {
