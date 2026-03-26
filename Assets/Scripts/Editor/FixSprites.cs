@@ -149,6 +149,16 @@ namespace RunAndGun.Editor
 
                 player.transform.position = new Vector3(-5, 0, 0);
                 EditorUtility.SetDirty(player);
+
+                // Remove PlayerAnimatorController — causes 999+ errors without an AnimatorController
+                var animCtrl = player.GetComponent<PlayerAnimatorController>();
+                if (animCtrl != null)
+                    Object.DestroyImmediate(animCtrl);
+
+                // Remove Animator if no controller assigned
+                var animator = player.GetComponent<Animator>();
+                if (animator != null && animator.runtimeAnimatorController == null)
+                    Object.DestroyImmediate(animator);
             }
 
             EditorSceneManager.MarkSceneDirty(
