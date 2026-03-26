@@ -7,8 +7,51 @@ namespace RunAndGun.Editor
 {
     public static class FixSprites
     {
-        [MenuItem("RunAndGun/Fix All Sprites In Scene")]
-        public static void Fix()
+        [MenuItem("RunAndGun/1 - Reimport Sprites")]
+        public static void ReimportSprites()
+        {
+            string[] names = {
+                "Player", "Bullet", "EnemyBullet", "Ground", "Platform",
+                "GroundEnemy", "FlyingEnemy", "Coin", "HealthPickup",
+                "Background", "Explosion"
+            };
+
+            foreach (string n in names)
+            {
+                string path = $"Assets/Sprites/{n}.png";
+                TextureImporter imp = AssetImporter.GetAtPath(path) as TextureImporter;
+                if (imp == null)
+                {
+                    Debug.LogWarning($"[ReimportSprites] No importer found for {path}");
+                    continue;
+                }
+
+                Debug.Log($"[ReimportSprites] {n}: current type = {imp.textureType}");
+                imp.textureType = TextureImporterType.Sprite;
+                imp.spriteImportMode = SpriteImportMode.Single;
+                imp.spritePixelsPerUnit = 16;
+                imp.filterMode = FilterMode.Point;
+                imp.textureCompression = TextureImporterCompression.Uncompressed;
+                imp.mipmapEnabled = false;
+                EditorUtility.SetDirty(imp);
+                imp.SaveAndReimport();
+
+                // Verify
+                Sprite spr = AssetDatabase.LoadAssetAtPath<Sprite>(path);
+                if (spr != null)
+                    Debug.Log($"[ReimportSprites] SUCCESS: {n} -> sprite loaded, tex={spr.texture.name}");
+                else
+                    Debug.LogError($"[ReimportSprites] FAIL: {n} -> sprite is still null after reimport!");
+            }
+
+            AssetDatabase.Refresh(ImportAssetOptions.ForceSynchronousImport);
+            EditorUtility.DisplayDialog("Reimport Sprites",
+                "Done! Check Console for results.\n\nNow run: RunAndGun > 2 - Fix Scene",
+                "OK");
+        }
+
+        [MenuItem("RunAndGun/2 - Fix Scene")]
+        public static void FixScene()
         {
             int fixed_count = 0;
 
@@ -28,83 +71,39 @@ namespace RunAndGun.Editor
             // ---- Delete Directional Light ----
             GameObject dirLight = GameObject.Find("Directional Light");
             if (dirLight != null)
-            {
                 Undo.DestroyObjectImmediate(dirLight);
-            }
 
-            // ---- Pre-load all sprites ----
+            // ---- Load sprites ----
             string[] spriteNames = {
                 "Player", "Ground", "Platform", "Coin", "GroundEnemy",
-                "FlyingEnemy", "HealthPickup", "Background", "Bullet",
-                "EnemyBullet", "Explosion"
+                "FlyingEnemy", "HealthPickup", "Background"
             };
 
-            // Load sprites using multiple methods for reliability
-            System.Collections.Generic.Dictionary<string, Sprite> spriteMap =
-                new System.Collections.Generic.Dictionary<string, Sprite>();
-
+            var spriteMap = new System.Collections.Generic.Dictionary<string, Sprite>();
             foreach (string sn in spriteNames)
             {
                 string path = $"Assets/Sprites/{sn}.png";
-
-                // Method 1: Try LoadAssetAtPath<Sprite>
                 Sprite spr = AssetDatabase.LoadAssetAtPath<Sprite>(path);
-
-                // Method 2: If that failed or returned wrong name, try sub-assets
-                if (spr == null || spr.texture.name != sn)
-                {
-                    Object[] all = AssetDatabase.LoadAllAssetsAtPath(path);
-                    foreach (Object obj in all)
-                    {
-                        if (obj is Sprite s && s.texture != null && s.texture.name == sn)
-                        {
-                            spr = s;
-                            break;
-                        }
-                    }
-                }
-
-                // Method 3: Load texture and get sprite from it
-                if (spr == null || spr.texture.name != sn)
-                {
-                    Texture2D tex = AssetDatabase.LoadAssetAtPath<Texture2D>(path);
-                    if (tex != null)
-                    {
-                        // Force reimport as sprite
-                        TextureImporter imp = AssetImporter.GetAtPath(path) as TextureImporter;
-                        if (imp != null && imp.textureType != TextureImporterType.Sprite)
-                        {
-                            imp.textureType = TextureImporterType.Sprite;
-                            imp.spritePixelsPerUnit = 16;
-                            imp.filterMode = FilterMode.Point;
-                            imp.SaveAndReimport();
-                        }
-                        spr = AssetDatabase.LoadAssetAtPath<Sprite>(path);
-                    }
-                }
-
                 if (spr != null)
                 {
                     spriteMap[sn] = spr;
-                    Debug.Log($"[FixSprites] Loaded sprite '{sn}': texture={spr.texture.name}, rect={spr.rect}");
+                    Debug.Log($"[FixScene] Loaded {sn}: tex={spr.texture.name}, w={spr.texture.width}");
                 }
                 else
                 {
-                    Debug.LogWarning($"[FixSprites] FAILED to load sprite: {path}");
+                    Debug.LogError($"[FixScene] Cannot load sprite: {path}");
                 }
             }
 
             // ---- Fix all SpriteRenderers ----
-            SpriteRenderer[] renderers = Object.FindObjectsByType<SpriteRenderer>(
-                FindObjectsSortMode.None);
-
+            SpriteRenderer[] renderers = Object.FindObjectsByType<SpriteRenderer>(FindObjectsSortMode.None);
             foreach (SpriteRenderer sr in renderers)
             {
                 string goName = sr.gameObject.name;
                 string spriteName = null;
 
                 if (goName == "Player") spriteName = "Player";
-                else if (goName.StartsWith("Ground_") || goName == "Ground") spriteName = "Ground";
+                else if (goName.StartsWith("Ground_")) spriteName = "Ground";
                 else if (goName == "Platform") spriteName = "Platform";
                 else if (goName == "Coin") spriteName = "Coin";
                 else if (goName == "GroundEnemy") spriteName = "GroundEnemy";
@@ -112,61 +111,42 @@ namespace RunAndGun.Editor
                 else if (goName == "HealthPickup") spriteName = "HealthPickup";
                 else if (goName == "Background") spriteName = "Background";
 
-                if (spriteName == null) continue;
+                if (spriteName == null || !spriteMap.ContainsKey(spriteName)) continue;
 
-                if (spriteMap.ContainsKey(spriteName))
-                {
-                    Sprite target = spriteMap[spriteName];
-                    Undo.RecordObject(sr, "Fix Sprite");
-                    sr.sprite = target;
-                    EditorUtility.SetDirty(sr);
-                    fixed_count++;
-                    Debug.Log($"[FixSprites] Assigned {goName} -> {target.texture.name}");
-                }
+                sr.sprite = spriteMap[spriteName];
+                EditorUtility.SetDirty(sr);
+                fixed_count++;
             }
 
             // ---- Fix Player ----
-            GameObject player = GameObject.FindWithTag("Player");
-            if (player == null) player = GameObject.Find("Player");
-
+            GameObject player = GameObject.Find("Player");
             if (player != null)
             {
-                Rigidbody2D rb = player.GetComponent<Rigidbody2D>();
+                var rb = player.GetComponent<Rigidbody2D>();
                 if (rb != null)
                 {
-                    Undo.RecordObject(rb, "Fix Player Rigidbody");
                     rb.gravityScale = 3f;
                     rb.freezeRotation = true;
-                    rb.collisionDetectionMode = CollisionDetectionMode2D.Continuous;
                     EditorUtility.SetDirty(rb);
                 }
 
                 var pc = player.GetComponent<PlayerController>();
                 if (pc != null)
                 {
-                    SerializedObject so = new SerializedObject(pc);
-                    var groundProp = so.FindProperty("groundLayers");
-                    if (groundProp != null)
-                    {
-                        groundProp.intValue = 1 << 0;
-                        so.ApplyModifiedProperties();
-                    }
+                    var so = new SerializedObject(pc);
+                    so.FindProperty("groundLayers").intValue = 1 << 0;
+                    so.ApplyModifiedProperties();
                 }
 
                 player.transform.position = new Vector3(-5, 0, 0);
                 EditorUtility.SetDirty(player);
             }
 
-            // Mark scene dirty
             EditorSceneManager.MarkSceneDirty(
                 UnityEngine.SceneManagement.SceneManager.GetActiveScene());
 
-            Debug.Log($"[FixSprites] === DONE === Fixed {fixed_count} sprites");
-
-            EditorUtility.DisplayDialog("Fix Sprites & Scene",
-                $"Fixed {fixed_count} sprite references.\n" +
-                "Also fixed: Camera, Player, Directional Light.\n\n" +
-                "Check Console for details.\nPress Ctrl+S to save, then Play!",
+            EditorUtility.DisplayDialog("Fix Scene",
+                $"Fixed {fixed_count} sprites.\nCheck Console.\n\nPress Ctrl+S, then Play!",
                 "OK");
         }
     }
