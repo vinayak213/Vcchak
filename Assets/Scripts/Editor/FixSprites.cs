@@ -138,6 +138,15 @@ namespace RunAndGun.Editor
                     so.ApplyModifiedProperties();
                 }
 
+                // Fix CapsuleCollider2D size to match sprite (32x48 at 16 PPU = 2x3 units)
+                var col = player.GetComponent<CapsuleCollider2D>();
+                if (col != null)
+                {
+                    col.size = new Vector2(1.8f, 2.8f);
+                    col.offset = new Vector2(0f, 0f);
+                    EditorUtility.SetDirty(col);
+                }
+
                 player.transform.position = new Vector3(-5, 0, 0);
                 EditorUtility.SetDirty(player);
             }
